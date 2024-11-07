@@ -15,10 +15,10 @@ struct Wave {
 };
 
 std::vector<Wave> waves = {
-    {0.5f, 8.0f, 4.0f, PI / 1.0f},
-    //{0.3f, 4.0f, 0.5f, PI / 8.0f},
-    {0.2f, 2.0f, 6.0f, PI / 4.0f}
-
+    {0.5f, 10.0f, 4.0f, PI / 4.0f},
+    {0.3f, 8.0f, 2.0f, PI / 8.0f},
+    {0.2f, 6.0f, 3.0f, PI / 2.0f},
+    {0.1f, 4.0f, 1.0f, 3.0f * PI / 4.0f}
 };
 
 float time = 0.0f;
@@ -35,11 +35,11 @@ struct Color {
 
 // Define color gradient stops based on height
 const std::vector<std::pair<float, Color>> colorGradient = {
-    {-2.0f, Color(0.0f, 0.0f, 0.6f)},    // Deep blue for troughs
-    {-1.0f, Color(0.0f, 0.2f, 0.8f)},    // Medium blue
-    {0.0f, Color(0.0f, 0.4f, 1.0f)},     // Light blue
-    {1.0f, Color(0.0f, 0.8f, 1.0f)},     // Cyan
-    {2.0f, Color(1.0f, 1.0f, 1.0f)}      // White for peaks
+    {-2.0f, Color(0.07f, 0.19f, 0.41f)},   // Deep blue for troughs
+    {-1.0f, Color(0.11f, 0.32f, 0.58f)},   // Medium blue
+    {0.0f, Color(0.15f, 0.45f, 0.75f)},    // Light blue
+    {1.0f, Color(0.64f, 0.84f, 0.92f)},    // Light cyan
+    {2.0f, Color(0.88f, 0.95f, 0.98f)}     // White for peaks
 };
 
 // Interpolate between colors based on height
@@ -152,6 +152,42 @@ void drawWaterMesh() {
     }
 }
 
+void drawLighthouse() {
+    glPushMatrix();
+    // Position the lighthouse on the shore
+    glTranslatef(-20.0f, 0.0f, 10.0f);
+
+    // Draw the lighthouse base
+    glColor3f(0.6f, 0.6f, 0.6f);
+    glBegin(GL_QUADS);
+    glVertex3f(-1.0f, 0.0f, -1.0f);
+    glVertex3f(-1.0f, 0.0f, 1.0f);
+    glVertex3f(1.0f, 0.0f, 1.0f);
+    glVertex3f(1.0f, 0.0f, -1.0f);
+    glEnd();
+
+    // Draw the lighthouse tower
+    glColor3f(0.8f, 0.8f, 0.8f);
+    glBegin(GL_QUADS);
+    glVertex3f(-0.5f, 0.0f, -0.5f);
+    glVertex3f(-0.5f, 0.0f, 0.5f);
+    glVertex3f(0.5f, 5.0f, 0.5f);
+    glVertex3f(0.5f, 5.0f, -0.5f);
+    glEnd();
+
+    // Draw the lighthouse top
+    glColor3f(0.9f, 0.9f, 0.9f);
+    glTranslatef(0.0f, 5.0f, 0.0f);
+    glutSolidCone(0.5f, 1.0f, 16, 16);
+
+    // Draw the lighthouse light
+    glColor3f(1.0f, 1.0f, 0.0f);
+    glTranslatef(0.0f, 0.5f, 0.0f);
+    glutSolidSphere(0.3f, 16, 16);
+
+    glPopMatrix();
+}
+
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glLoadIdentity();
@@ -161,7 +197,6 @@ void display() {
         0.0f, 1.0f, 0.0f);
 
     drawWaterMesh();
-
     glutSwapBuffers();
 }
 
@@ -201,8 +236,29 @@ void keyboard(unsigned char key, int x, int y) {
         cameraY = 30.0f;
         cameraZ = 60.0f;
         break;
-    case 27:
-        exit(0);
+    case '1':
+        waves[0].amplitude = 0.5f;
+        waves[0].wavelength = 10.0f;
+        waves[0].speed = 4.0f;
+        waves[0].direction = PI / 4.0f;
+        break;
+    case '2':
+        waves[1].amplitude = 0.3f;
+        waves[1].wavelength = 8.0f;
+        waves[1].speed = 2.0f;
+        waves[1].direction = PI / 8.0f;
+        break;
+    case '3':
+        waves[2].amplitude = 0.2f;
+        waves[2].wavelength = 6.0f;
+        waves[2].speed = 3.0f;
+        waves[2].direction = PI / 2.0f;
+        break;
+    case '4':
+        waves[3].amplitude = 0.1f;
+        waves[3].wavelength = 4.0f;
+        waves[3].speed = 1.0f;
+        waves[3].direction = 3.0f * PI / 4.0f;
         break;
     }
     glutPostRedisplay();
@@ -225,10 +281,9 @@ void reshape(int w, int h) {
 }
 
 int main(void) {
-
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
     glutInitWindowSize(800, 600);
-    glutCreateWindow("Gerstner Waves - Height-Based Colors");
+    glutCreateWindow("3D Ocean");
 
     init();
 
