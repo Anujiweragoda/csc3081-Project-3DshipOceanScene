@@ -2,10 +2,71 @@
 #include <GL/glut.h>
 #include <vector>
 #include <cmath>
+#include <SOIL2.h>
+
 
 const int MESH_SIZE = 100;
 const float MESH_SCALE = 50.0f;
 const float PI = 3.14159f;
+
+
+
+//variables to move the camera
+GLfloat camX = 0.0; GLfloat camY = 0.0; GLfloat camZ = 0.0;
+
+//variables to move the scene
+GLfloat sceRX = 0.0; GLfloat sceRY = 0.0; GLfloat sceRZ = 0.0;
+GLfloat sceTX = 0.0; GLfloat sceTY = 0.0; GLfloat sceTZ = 0.0;
+
+////variables to move the objects
+GLfloat objRX = 0.0; GLfloat objRY = 0.0; GLfloat objRZ = 0.0;
+GLfloat objTX = 0.0; GLfloat objTY = 0.0; GLfloat objTZ = 0.0;
+
+
+
+
+
+void setLightingAndShading() {
+    
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);  
+    glEnable(GL_LIGHT1);  
+
+ 
+    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+
+   
+    glShadeModel(GL_SMOOTH);
+
+    GLfloat sunPosition[] = { 10.0f, 20.0f, 20.0f, 0.0f };  
+
+
+    GLfloat sunAmbient[] = { 0.2f, 0.2f, 0.2f, 1.0f };     
+    GLfloat sunDiffuse[] = { 1.0f, 0.95f, 0.85f, 1.0f };  
+    GLfloat sunSpecular[] = { 1.0f, 1.0f, 1.0f, 1.0f };   
+
+
+    GLfloat fillPosition[] = { -10.0f, 5.0f, -10.0f, 0.0f };
+    GLfloat fillAmbient[] = { 0.1f, 0.1f, 0.1f, 1.0f };
+    GLfloat fillDiffuse[] = { 0.3f, 0.3f, 0.4f, 1.0f };   
+
+    glLightfv(GL_LIGHT0, GL_POSITION, sunPosition);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, sunAmbient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, sunDiffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, sunSpecular);
+
+    glLightfv(GL_LIGHT1, GL_POSITION, fillPosition);
+    glLightfv(GL_LIGHT1, GL_AMBIENT, fillAmbient);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE, fillDiffuse);
+
+   
+    GLfloat globalAmbient[] = { 0.2f, 0.2f, 0.3f, 1.0f };
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, globalAmbient);
+
+   
+    glEnable(GL_DEPTH_TEST);
+}
 
 // Wave parameters
 struct Wave {
@@ -153,41 +214,7 @@ void drawWaterMesh() {
     }
 }
 
-void drawLighthouse() {
-    glPushMatrix();
-    // Position the lighthouse on the shore
-    glTranslatef(-20.0f, 0.0f, 10.0f);
 
-    // Draw the lighthouse base
-    glColor3f(0.6f, 0.6f, 0.6f);
-    glBegin(GL_QUADS);
-    glVertex3f(-1.0f, 0.0f, -1.0f);
-    glVertex3f(-1.0f, 0.0f, 1.0f);
-    glVertex3f(1.0f, 0.0f, 1.0f);
-    glVertex3f(1.0f, 0.0f, -1.0f);
-    glEnd();
-
-    // Draw the lighthouse tower
-    glColor3f(0.8f, 0.8f, 0.8f);
-    glBegin(GL_QUADS);
-    glVertex3f(-0.5f, 0.0f, -0.5f);
-    glVertex3f(-0.5f, 0.0f, 0.5f);
-    glVertex3f(0.5f, 5.0f, 0.5f);
-    glVertex3f(0.5f, 5.0f, -0.5f);
-    glEnd();
-
-    // Draw the lighthouse top
-    glColor3f(0.9f, 0.9f, 0.9f);
-    glTranslatef(0.0f, 5.0f, 0.0f);
-    glutSolidCone(0.5f, 1.0f, 16, 16);
-
-    // Draw the lighthouse light
-    glColor3f(1.0f, 1.0f, 0.0f);
-    glTranslatef(0.0f, 0.5f, 0.0f);
-    glutSolidSphere(0.3f, 16, 16);
-
-    glPopMatrix();
-}
 
 void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -197,6 +224,11 @@ void display() {
         0.0f, 0.0f, 0.0f,
         0.0f, 1.0f, 0.0f);
 
+    glRotatef(sceRX, 1.0f, 0.0f, 0.0f);
+    glRotatef(sceRY, 0.0f, 1.0f, 0.0f);
+    glRotatef(sceRZ, 0.0f, 0.0f, 1.0f);
+    glTranslatef(sceTX, sceTY, sceTZ);
+
     drawWaterMesh();
     glutSwapBuffers();
 }
@@ -205,6 +237,22 @@ void update(int value) {
     time += 0.016f;
     glutPostRedisplay();
     glutTimerFunc(16, update, 0);
+}
+
+void keyboardSpecial(int key, int x, int y) {
+    if (key == GLUT_KEY_UP)
+        camY += 1;
+
+    if (key == GLUT_KEY_DOWN)
+        camY -= 1;
+
+    if (key == GLUT_KEY_RIGHT)
+        sceTX += 1;
+
+    if (key == GLUT_KEY_LEFT)
+        sceTX -= 1;
+
+    glutPostRedisplay();
 }
 
 void keyboard(unsigned char key, int x, int y) {
@@ -231,6 +279,9 @@ void keyboard(unsigned char key, int x, int y) {
         break;
     case 'z':
         cameraZ += cameraSpeed;
+        break;
+    case'y':
+        sceRY += 1.0;
         break;
     case 'r':
         cameraX = 0.0f;
@@ -267,10 +318,10 @@ void keyboard(unsigned char key, int x, int y) {
 
 void init() {
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
-
-    // Disable lighting as we're using custom colors
+    glClearColor(0.0f, 0.0f, 0.5f, 1.0f);
     glDisable(GL_LIGHTING);
+
+
 }
 
 void reshape(int w, int h) {
@@ -287,9 +338,10 @@ int main(void) {
     glutCreateWindow("3D Ocean");
 
     init();
-
+    setLightingAndShading();
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
+    glutSpecialFunc(keyboardSpecial);
     glutKeyboardFunc(keyboard);
     glutTimerFunc(0, update, 0);
 
